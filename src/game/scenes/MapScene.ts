@@ -1,7 +1,9 @@
-﻿import { Scene } from "phaser";
+﻿
+import { Scene } from "phaser";
 import RGB_TO_REGION from "../data/rgbToRegion.ts";
 import { REGION_TO_HEX } from "../data/regionToHex.ts";
 import { WorldMap } from "../entities/WorldMap.ts";
+import { Leaderboard } from "../entities/Leaderboard.ts";
 
 export class MapScene extends Scene {
 	private maskCtx: CanvasRenderingContext2D;
@@ -17,6 +19,7 @@ export class MapScene extends Scene {
 	private selectedOwner: string = "RED"; // Default owner
 
 	private worldMap: WorldMap;
+	private leaderboard: Leaderboard;
 
 	private colorMap: Record<string, [number, number, number]> = {
 		'GREEN': [0, 255, 0],
@@ -58,6 +61,10 @@ export class MapScene extends Scene {
 
 		this.buildRegionPixelsOnce();
 		this.chooseColor();
+
+		this.leaderboard = new Leaderboard(this, this.worldMap);
+		this.leaderboard.update();
+
 		this.mapOnClick(map);
 	}
 
@@ -81,13 +88,12 @@ export class MapScene extends Scene {
 				console.log("No region for color:", key, "at", x, y);
 				return;
 			}
-			console.log("Region clicked:", regionId);
-
 			// Update Logic
 			this.worldMap.setRegionOwner(regionId, this.selectedOwner);
 
 			// Update Visuals
 			this.paintRegion(regionId);
+			this.leaderboard.update();
 		});
 	}
 

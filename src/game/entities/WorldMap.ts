@@ -17,6 +17,7 @@ export class WorldMap {
         const region = this.regions.get(id);
         if (region) {
             region.owner = owner;
+            console.log(`${id} owned by ${owner}`);
         } else {
             console.warn(`Region with id ${id} not found.`);
         }

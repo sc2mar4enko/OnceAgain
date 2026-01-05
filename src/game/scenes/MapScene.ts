@@ -12,6 +12,7 @@ export class MapScene extends Scene {
 	private overlayCtx: CanvasRenderingContext2D;
 	private overlayData: ImageData;
 
+	private selectedColor: [number, number, number] = [255, 0, 0];
 
 	constructor() {
 		super('MapScene');
@@ -42,7 +43,7 @@ export class MapScene extends Scene {
 			.setDisplaySize(width, height);
 
 		this.buildRegionPixelsOnce();
-		
+		this.chooseColor();
 		this.mapOnClick(map);
 	}
 	
@@ -87,22 +88,39 @@ export class MapScene extends Scene {
 		}
 	}
 
-	private paintRegion(regionId: string, rgb: [number, number, number] = [123, 70, 234], alpha = 120) {
+	paintRegion(regionId: string) {
 		const idxs = this.regionPixels[regionId];
 		if (!idxs) return;
 
 		const d = this.overlayData.data;
-		const [R, G, B] = rgb;
+		const [R, G, B] = this.selectedColor;
 
 		for (let k = 0; k < idxs.length; k++) {
 			const i = idxs[k];
 			d[i] = R;
 			d[i + 1] = G;
 			d[i + 2] = B;
-			d[i + 3] = alpha; // 0..255
+			d[i + 3] = 125;
 		}
 
 		this.overlayCtx.putImageData(this.overlayData, 0, 0);
 		this.overlayTex.refresh();
+	}
+
+	chooseColor() {
+		const colors: Array<{ label: string; rgb: [number, number, number]; y: number; }> = [
+			{label: 'GREEN', rgb: [0, 255, 0], y: 25},
+			{label: 'BLUE', rgb: [0, 0, 255], y: 50},
+			{label: 'RED', rgb: [255, 0, 0], y: 75},
+			{ label: 'YELLOW', rgb: [255, 255, 0], y: 100 },
+			{ label: 'PURPLE', rgb: [160, 32, 240], y: 125 },
+		];
+
+		colors.forEach(({label, rgb, y}) => {
+			this.add.text(25, y, label).setColor(label.toLowerCase()).setFontSize(24).setInteractive()
+				.on('pointerdown', () => {
+					this.selectedColor = rgb;
+				});
+		});
 	}
 }

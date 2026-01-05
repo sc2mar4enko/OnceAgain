@@ -1,9 +1,8 @@
-﻿
-import { Scene } from "phaser";
+﻿import {Scene} from "phaser";
 import RGB_TO_REGION from "../data/rgbToRegion.ts";
-import { REGION_TO_HEX } from "../data/regionToHex.ts";
-import { WorldMap } from "../entities/WorldMap.ts";
-import { Leaderboard } from "../entities/Leaderboard.ts";
+import {REGION_TO_HEX} from "../data/regionToHex.ts";
+import {WorldMap} from "../entities/WorldMap.ts";
+import {Leaderboard} from "../entities/Leaderboard.ts";
 
 export class MapScene extends Scene {
 	private maskCtx: CanvasRenderingContext2D;
@@ -37,7 +36,7 @@ export class MapScene extends Scene {
 		this.worldMap = new WorldMap(Object.keys(REGION_TO_HEX));
 
 		const cam = this.cameras.main;
-		const { width, height } = this.scale;
+		const {width, height} = this.scale;
 
 		const map = this.add.image(cam.centerX, cam.centerY, 'map_user')
 			.setOrigin(0.5)

@@ -1,5 +1,7 @@
-﻿import {Scene} from "phaser";
+﻿import { Scene } from "phaser";
 import RGB_TO_REGION from "../data/rgbToRegion.ts";
+import { REGION_TO_HEX } from "../data/regionToHex.ts";
+import { WorldMap } from "../entities/WorldMap.ts";
 
 export class MapScene extends Scene {
 	private maskCtx: CanvasRenderingContext2D;
@@ -12,15 +14,27 @@ export class MapScene extends Scene {
 	private overlayCtx: CanvasRenderingContext2D;
 	private overlayData: ImageData;
 
-	private selectedColor: [number, number, number] = [255, 0, 0];
+	private selectedOwner: string = "RED"; // Default owner
+
+	private worldMap: WorldMap;
+
+	private colorMap: Record<string, [number, number, number]> = {
+		'GREEN': [0, 255, 0],
+		'BLUE': [0, 0, 255],
+		'RED': [255, 0, 0],
+		'YELLOW': [255, 255, 0],
+		'PURPLE': [160, 32, 240],
+	};
 
 	constructor() {
 		super('MapScene');
 	}
-	
+
 	create() {
+		this.worldMap = new WorldMap(Object.keys(REGION_TO_HEX));
+
 		const cam = this.cameras.main;
-		const {width, height} = this.scale;
+		const { width, height } = this.scale;
 
 		const map = this.add.image(cam.centerX, cam.centerY, 'map_user')
 			.setOrigin(0.5)
@@ -46,7 +60,7 @@ export class MapScene extends Scene {
 		this.chooseColor();
 		this.mapOnClick(map);
 	}
-	
+
 	mapOnClick(map: Phaser.GameObjects.Image) {
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
 			const localX = (pointer.x - map.x) / map.scaleX + map.width * map.originX;
@@ -67,7 +81,12 @@ export class MapScene extends Scene {
 				console.log("No region for color:", key, "at", x, y);
 				return;
 			}
-			console.log(regionId);
+			console.log("Region clicked:", regionId);
+
+			// Update Logic
+			this.worldMap.setRegionOwner(regionId, this.selectedOwner);
+
+			// Update Visuals
 			this.paintRegion(regionId);
 		});
 	}
@@ -92,8 +111,14 @@ export class MapScene extends Scene {
 		const idxs = this.regionPixels[regionId];
 		if (!idxs) return;
 
+		const region = this.worldMap.getRegion(regionId);
+		if (!region || !region.owner) return;
+
+		const color = this.colorMap[region.owner];
+		if (!color) return;
+
+		const [R, G, B] = color;
 		const d = this.overlayData.data;
-		const [R, G, B] = this.selectedColor;
 
 		for (let k = 0; k < idxs.length; k++) {
 			const i = idxs[k];
@@ -108,19 +133,13 @@ export class MapScene extends Scene {
 	}
 
 	chooseColor() {
-		const colors: Array<{ label: string; rgb: [number, number, number]; y: number; }> = [
-			{label: 'GREEN', rgb: [0, 255, 0], y: 25},
-			{label: 'BLUE', rgb: [0, 0, 255], y: 50},
-			{label: 'RED', rgb: [255, 0, 0], y: 75},
-			{ label: 'YELLOW', rgb: [255, 255, 0], y: 100 },
-			{ label: 'PURPLE', rgb: [160, 32, 240], y: 125 },
-		];
-
-		colors.forEach(({label, rgb, y}) => {
+		let y = 25;
+		Object.keys(this.colorMap).forEach((label) => {
 			this.add.text(25, y, label).setColor(label.toLowerCase()).setFontSize(24).setInteractive()
 				.on('pointerdown', () => {
-					this.selectedColor = rgb;
+					this.selectedOwner = label;
 				});
+			y += 25;
 		});
 	}
 }

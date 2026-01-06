@@ -1,8 +1,8 @@
-﻿import {Scene} from "phaser";
+﻿import { Scene } from "phaser";
 import RGB_TO_REGION from "../data/rgbToRegion.ts";
-import {REGION_TO_HEX} from "../data/regionToHex.ts";
-import {WorldMap} from "../entities/WorldMap.ts";
-import {Leaderboard} from "../entities/Leaderboard.ts";
+import { REGION_TO_HEX } from "../data/regionToHex.ts";
+import { WorldMap } from "../entities/WorldMap.ts";
+import { Leaderboard } from "../entities/Leaderboard.ts";
 
 export class MapScene extends Scene {
 	private maskCtx: CanvasRenderingContext2D;
@@ -20,6 +20,9 @@ export class MapScene extends Scene {
 	private worldMap: WorldMap;
 	private leaderboard: Leaderboard;
 
+	private turnCount: number = 0;
+	private turnText: Phaser.GameObjects.Text;
+
 	private colorMap: Record<string, [number, number, number]> = {
 		'GREEN': [0, 255, 0],
 		'BLUE': [0, 0, 255],
@@ -32,11 +35,17 @@ export class MapScene extends Scene {
 		super('MapScene');
 	}
 
+	init(data: { selectedOwner: string }) {
+		if (data.selectedOwner) {
+			this.selectedOwner = data.selectedOwner;
+		}
+	}
+
 	create() {
 		this.worldMap = new WorldMap(Object.keys(REGION_TO_HEX));
 
 		const cam = this.cameras.main;
-		const {width, height} = this.scale;
+		const { width, height } = this.scale;
 
 		const map = this.add.image(cam.centerX, cam.centerY, 'map_user')
 			.setOrigin(0.5)
@@ -59,10 +68,13 @@ export class MapScene extends Scene {
 			.setDisplaySize(width, height);
 
 		this.buildRegionPixelsOnce();
-		this.chooseColor();
 
 		this.leaderboard = new Leaderboard(this, this.worldMap);
 		this.leaderboard.update();
+
+		this.turnText = this.add.text(width - 150, 25, "Turn: 0")
+			.setFontSize(30)
+			.setColor("#000000");
 
 		this.mapOnClick(map);
 	}
@@ -89,10 +101,12 @@ export class MapScene extends Scene {
 			}
 			// Update Logic
 			this.worldMap.setRegionOwner(regionId, this.selectedOwner);
+			this.turnCount++;
 
 			// Update Visuals
 			this.paintRegion(regionId);
 			this.leaderboard.update();
+			this.updateTurnText();
 		});
 	}
 
@@ -137,14 +151,7 @@ export class MapScene extends Scene {
 		this.overlayTex.refresh();
 	}
 
-	chooseColor() {
-		let y = 25;
-		Object.keys(this.colorMap).forEach((label) => {
-			this.add.text(25, y, label).setColor(label.toLowerCase()).setFontSize(24).setInteractive()
-				.on('pointerdown', () => {
-					this.selectedOwner = label;
-				});
-			y += 25;
-		});
+	updateTurnText() {
+		this.turnText.setText(`Turn: ${this.turnCount}`);
 	}
 }

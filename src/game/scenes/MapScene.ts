@@ -3,6 +3,7 @@ import RGB_TO_REGION from "../data/rgbToRegion.ts";
 import { REGION_TO_HEX } from "../data/regionToHex.ts";
 import { WorldMap } from "../entities/WorldMap.ts";
 import { Leaderboard } from "../entities/Leaderboard.ts";
+import { Bot } from "../entities/Bot";
 
 export class MapScene extends Scene {
 	private maskCtx: CanvasRenderingContext2D;
@@ -22,6 +23,8 @@ export class MapScene extends Scene {
 
 	private turnCount: number = 0;
 	private turnText: Phaser.GameObjects.Text;
+
+	private bots: Bot[] = [];
 
 	private colorMap: Record<string, [number, number, number]> = {
 		'GREEN': [0, 255, 0],
@@ -76,6 +79,13 @@ export class MapScene extends Scene {
 			.setFontSize(30)
 			.setColor("#000000");
 
+		// Initialize Bots
+		Object.keys(this.colorMap).forEach(color => {
+			if (color !== this.selectedOwner) {
+				this.bots.push(new Bot(`Bot-${color}`, color, this.worldMap));
+			}
+		});
+
 		this.mapOnClick(map);
 	}
 
@@ -99,12 +109,20 @@ export class MapScene extends Scene {
 				console.log("No region for color:", key, "at", x, y);
 				return;
 			}
-			// Update Logic
+
+			// Player Move
 			this.worldMap.setRegionOwner(regionId, this.selectedOwner);
 			this.turnCount++;
-
-			// Update Visuals
 			this.paintRegion(regionId);
+
+			// Bot Moves
+			this.bots.forEach(bot => {
+				const capturedId = bot.makeMove();
+				if (capturedId) {
+					this.paintRegion(capturedId);
+				}
+			});
+
 			this.leaderboard.update();
 			this.updateTurnText();
 		});

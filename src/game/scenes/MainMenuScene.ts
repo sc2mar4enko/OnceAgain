@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 
-export class SideChooseScene extends Scene {
+export class MainMenuScene extends Scene {
     private colors: string[] = ['GREEN', 'BLUE', 'RED', 'YELLOW', 'PURPLE'];
 
     constructor() {

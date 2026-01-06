@@ -13,13 +13,14 @@ export class Bot {
 
     public makeMove(): string | null {
         const allRegions = this.worldMap.getAllRegions();
-        const neutralRegions = allRegions.filter(region => region.owner === null);
+        const neutralRegions = allRegions.filter(region => region.owner !== this.ownerColor);
+        const accessibleRegions = neutralRegions.filter(region => this.worldMap.isRegionAccessible(region.id, this.ownerColor));
 
-        if (neutralRegions.length === 0) {
+        if (accessibleRegions.length === 0) {
             return null; // No moves possible
         }
 
-        const randomRegion = neutralRegions[Math.floor(Math.random() * neutralRegions.length)];
+        const randomRegion = accessibleRegions[Math.floor(Math.random() * accessibleRegions.length)];
         this.worldMap.setRegionOwner(randomRegion.id, this.ownerColor);
         return randomRegion.id;
     }

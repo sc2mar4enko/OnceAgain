@@ -1,8 +1,10 @@
 import { Boot } from './scenes/Boot';
 import { AUTO, Game } from 'phaser';
 import { Preloader } from './scenes/Preloader';
-import { SideChooseScene } from './scenes/SideChooseScene.ts';
+import { MainMenuScene } from './scenes/MainMenuScene.ts';
 import { MapScene } from "./scenes/MapScene.ts";
+
+import { GameOverScene } from "./scenes/GameOverScene";
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -15,8 +17,9 @@ export const config: Phaser.Types.Core.GameConfig = {
     scene: [
         Boot,
         Preloader,
-        SideChooseScene,
-        MapScene
+        MainMenuScene,
+        MapScene,
+        GameOverScene
     ]
 };
 

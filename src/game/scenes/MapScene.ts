@@ -109,12 +109,7 @@ export class MapScene extends Scene {
 				console.log("No region for color:", key, "at", x, y);
 				return;
 			}
-
-			// Player Move
-			this.worldMap.setRegionOwner(regionId, this.selectedOwner);
-			this.turnCount++;
-			this.paintRegion(regionId);
-
+			
 			// Bot Moves
 			this.bots.forEach(bot => {
 				const capturedId = bot.makeMove();
@@ -123,9 +118,36 @@ export class MapScene extends Scene {
 				}
 			});
 
+			if (!this.worldMap.isRegionAccessible(regionId, this.selectedOwner)) {
+				console.log("Region not accessible (must be adjacent to owned regions)");
+				return;
+			}
+
+			this.worldMap.setRegionOwner(regionId, this.selectedOwner);
+			this.turnCount++;
+			this.paintRegion(regionId);
+			
 			this.leaderboard.update();
 			this.updateTurnText();
+
+			this.checkWinCondition();
 		});
+	}
+
+	checkWinCondition() {
+		const totalScore = this.worldMap.getTotalScore();
+		const threshold = totalScore * 0.33;
+
+		this.add.text(25, 25, `First to ${threshold} score wins`).setColor("#000000").setFontSize(20);
+		const owners = [this.selectedOwner, ...this.bots.map(b => b.ownerColor)];
+
+		for (const owner of owners) {
+			const score = this.worldMap.getOwnerScore(owner);
+			if (score >= threshold) {
+				this.scene.start('GameOverScene', { winner: owner });
+				break;
+			}
+		}
 	}
 
 	buildRegionPixelsOnce() {
